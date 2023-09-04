@@ -1,81 +1,100 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Component } from "react";
 import Screen from "./Screen";
 import Button from "./Button";
 
 type CalculatorState = {
-  screen: string,
-  count: string,
-  operation: string
+  firstValue: string,
+  currentValue: string,
+  operator: string,
+  isDecimal: boolean
 }
 
-class Calculator extends Component<{}, CalculatorState> {
-  numers: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-  operators: string[] = ['+', '-', '*', '/'];
+class Calculator extends Component<object, CalculatorState> {
+  btnValues = [
+    ["7", "8", "9", "DEL"],
+    ["4", "5", "6", "+"],
+    ["1", "2", "3", "-"],
+    [".", "0", "/", "x"],
+    ["Reset", "="],
+  ]
 
-  constructor(props: {}) {
+  constructor(props: object) {
     super(props);
     this.state = {
-      screen: '0',
-      count: '',
-      operation: '',
+      firstValue: '',
+      currentValue: '0',
+      operator: '',
+      isDecimal: false
     }
   }
 
   handleClick = (value: string) => {
-    this.setState((state) => ({
-      screen: state.screen === '0' ? value : state.screen + value
-    }))
+    if (value.match(/[0 - 9]/)) {
+      this.handleDigit(value);
+    } else if (value === '=' && this.state.operator) {
+      this.handleResult();
+    } else if (value === '.' && !this.state.isDecimal) {
+      this.handleFloat(value)
+    } else if (value === 'DEL') {
+      this.handleClear()
+    }
   };
 
-  handleOperation = (_value: string) => {
+  handleDigit = (value: string) => {
     this.setState((state) => ({
-      operation: state.operation,
-      screen: ''
+      currentValue: state.currentValue === '0' ? value : state.currentValue + value
+    }))
+  }
+
+  handleFloat = (decimal: string) => {
+    this.setState((state) => ({
+      currentValue: state.currentValue + decimal
+    }))
+  }
+
+  handleoperator = () => {
+    this.setState((state) => ({
+      operator: state.operator,
+      firstValue: state.firstValue
     }))
   };
 
   handleResult = () => {
     this.setState((state) => ({
-      count: state.count
+      firstValue: state.firstValue,
+      operator: state.operator
     }))
+
+    if (this.state.operator === '+') {
+      return parseFloat(this.state.firstValue) + parseFloat(this.state.firstValue)
+    }
   }
 
   handleClear = () => {
     this.setState((_state) => ({
-      screen: '0',
-      count: '',
-      operation: '',
+      firstValue: '',
+      currentValue: '0',
+      operator: '',
     }))
   }
 
   render() {
-    const { screen, count } = this.state;
+    const { currentValue } = this.state;
 
     return (
       <div>
-        <Screen currentValue={screen} />
-        <p>{count}</p>
+        <Screen currentValue={currentValue} />
         {
-          this.numers.map((num, index) => (
+          this.btnValues.flat().map((buttonValue, index) => (
             <Button
               key={index}
-              onClick={() => this.handleClick(num.toString())}
+              onClick={this.handleClick}
             >
-              {num}
+              {buttonValue}
             </Button>
           ))
         }
-        {
-          this.operators.map((operation, index) => (
-            <Button
-              key={index}
-              onClick={() => this.handleOperation(operation)}
-            >
-              {operation}
-            </Button>
-          ))
-        }
-        <Button onClick={this.handleClear}> Reset </Button>
       </div>
     )
   }

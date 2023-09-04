@@ -1,13 +1,13 @@
 import { FC, ReactNode } from 'react'
 
 type ButtonProps = {
-  onClick: () => void,
+  onClick: (value: string) => void,
   children: ReactNode
 }
 
 const Button: FC<ButtonProps> = ({ onClick, children }) => {
   return (
-    <button onClick={onClick}>
+    <button onClick={() => onClick(children as string)}>
       {children}
     </button>
   )

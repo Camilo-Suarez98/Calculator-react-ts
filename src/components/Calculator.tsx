@@ -1,102 +1,104 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Component } from "react";
 import Screen from "./Screen";
 import Button from "./Button";
 
 type CalculatorState = {
-  firstValue: string,
-  currentValue: string,
-  operator: string,
-  isDecimal: boolean
+  screen: string,
+  operation: string,
 }
 
 class Calculator extends Component<object, CalculatorState> {
-  btnValues = [
-    ["7", "8", "9", "DEL"],
-    ["4", "5", "6", "+"],
-    ["1", "2", "3", "-"],
-    [".", "0", "/", "x"],
-    ["Reset", "="],
-  ]
-
   constructor(props: object) {
     super(props);
     this.state = {
-      firstValue: '',
-      currentValue: '0',
-      operator: '',
-      isDecimal: false
+      screen: '0',
+      operation: '',
     }
   }
 
-  handleClick = (value: string) => {
-    if (value.match(/[0 - 9]/)) {
-      this.handleDigit(value);
-    } else if (value === '=' && this.state.operator) {
-      this.handleResult();
-    } else if (value === '.' && !this.state.isDecimal) {
-      this.handleFloat(value)
-    } else if (value === 'DEL') {
-      this.handleClear()
-    }
-  };
-
-  handleDigit = (value: string) => {
+  handleType = (value: string) => {
     this.setState((state) => ({
-      currentValue: state.currentValue === '0' ? value : state.currentValue + value
+      screen: state.screen === '0' ? value : `${state.screen}${value}`
+    }));
+  }
+
+  handleAddOperation = (operation: string) => {
+    const result = `${this.state.screen}${operation}`;
+    this.setState(() => ({
+      operation: result,
+      screen: result
     }))
   }
 
-  handleFloat = (decimal: string) => {
-    this.setState((state) => ({
-      currentValue: state.currentValue + decimal
-    }))
+  handleTypeSecondNumber = (value: string) => {
+    const result = `${this.state.screen}${value}`;
+    this.setState(() => ({
+      screen: result,
+      operation: result
+    }));
   }
 
-  handleoperator = () => {
-    this.setState((state) => ({
-      operator: state.operator,
-      firstValue: state.firstValue
-    }))
-  };
+  handleCalculate = (operation: string) => {
+    const result = parseFloat(eval(operation));
 
-  handleResult = () => {
-    this.setState((state) => ({
-      firstValue: state.firstValue,
-      operator: state.operator
-    }))
-
-    if (this.state.operator === '+') {
-      return parseFloat(this.state.firstValue) + parseFloat(this.state.firstValue)
-    }
+    this.setState(() => ({
+      screen: result.toString(),
+    }));
   }
 
-  handleClear = () => {
-    this.setState((_state) => ({
-      firstValue: '',
-      currentValue: '0',
-      operator: '',
-    }))
+  clearFunction = () => {
+    this.setState(() => ({
+      screen: '0',
+      operation: '',
+    }));
   }
 
   render() {
-    const { currentValue } = this.state;
+    const { screen, operation } = this.state;
+
+    const numbers: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const operations: string[] = ['+', '-', '*', '/'];
 
     return (
       <div>
-        <Screen currentValue={currentValue} />
+        <Screen currentValue={screen} />
         {
-          this.btnValues.flat().map((buttonValue, index) => (
-            <Button
-              key={index}
-              onClick={this.handleClick}
-            >
-              {buttonValue}
-            </Button>
-          ))
+          numbers.map((number) => {
+            return (
+              <Button
+                key={number}
+                onClick={operation === '' ?
+                  (() => this.handleType(number.toString())) :
+                  (() => this.handleTypeSecondNumber(number.toString()))
+                }
+              >
+                {number}
+              </Button>
+            )
+          })
         }
+        {
+          operations.map((operation, index) => {
+            return (
+              <Button
+                key={index}
+                onClick={(() => this.handleAddOperation(operation))}
+              >
+                {operation}
+              </Button>
+            )
+          })
+        }
+        <Button onClick={screen === '' ?
+          (() => this.handleType('.')) :
+          (() => this.handleTypeSecondNumber('.'))
+        }>
+          .
+        </Button>
+        <Button onClick={(() => this.handleCalculate(operation))}> = </Button>
+        <Button onClick={(() => this.clearFunction())}> C </Button>
       </div>
-    )
+    );
   }
 }
 
